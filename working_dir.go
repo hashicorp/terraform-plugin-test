@@ -171,9 +171,10 @@ func (wd *WorkingDir) RequireCreatePlan(t TestControl) {
 	}
 }
 
-// Apply runs "terraform apply". If Plan has previously completed successfully
-// and the saved plan has not been cleared in the meantime then ths will apply
-// the saved plan. Otherwise, it will implicitly create a new plan and apply it.
+// Apply runs "terraform apply". If CreatePlan has previously completed
+// successfully and the saved plan has not been cleared in the meantime then
+// this will apply the saved plan. Otherwise, it will implicitly create a new
+// plan and apply it.
 func (wd *WorkingDir) Apply() error {
 	args := []string{"apply"}
 	if wd.HasSavedPlan() {
@@ -192,6 +193,30 @@ func (wd *WorkingDir) RequireApply(t TestControl) {
 	if err := wd.Apply(); err != nil {
 		t := testingT{t}
 		t.Fatalf("failed to apply: %s", err)
+	}
+}
+
+// Destroy runs "terraform destroy". It does not consider or modify any saved
+// plan, and is primarily for cleaning up at the end of a test run.
+//
+// If destroy fails then remote objects might still exist, and continue to
+// exist after a particular test is concluded.
+func (wd *WorkingDir) Destroy() error {
+	args := []string{"destroy", "-auto-approve", wd.configDir}
+	return wd.runTerraform(args...)
+}
+
+// RequireDestroy is a variant of Destroy that will fail the test via
+// the given TestControl if the destroy operation fails.
+//
+// If destroy fails then remote objects might still exist, and continue to
+// exist after a particular test is concluded.
+func (wd *WorkingDir) RequireDestroy(t TestControl) {
+	t.Helper()
+	if err := wd.Destroy(); err != nil {
+		t := testingT{t}
+		t.Logf("WARNING: destroy failed, so remote objects may still exist and be subject to billing")
+		t.Fatalf("failed to destroy: %s", err)
 	}
 }
 
