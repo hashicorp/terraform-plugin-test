@@ -285,3 +285,19 @@ func (wd *WorkingDir) RequireState(t TestControl) *tfjson.State {
 	}
 	return ret
 }
+
+// Import runs terraform import
+func (wd *WorkingDir) Import(resource, id string) error {
+	args := []string{"import", "-config=" + wd.configDir, resource, id}
+	return wd.runTerraform(args...)
+}
+
+// RequireImport is a variant of Import that will fail the test via
+// the given TestControl if the import is non successful.
+func (wd *WorkingDir) RequireImport(t TestControl, resource, id string) {
+	t.Helper()
+	if err := wd.Import(resource, id); err != nil {
+		t := testingT{t}
+		t.Fatalf("failed to import: %s", err)
+	}
+}
