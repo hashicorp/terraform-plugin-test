@@ -29,20 +29,12 @@ func FindTerraform() string {
 	return p
 }
 
-// RunTerraform runs the configured Terraform CLI executable with the given
-// arguments, returning an error if it produces a non-successful exit status.
-func (wd *WorkingDir) runTerraform(args ...string) error {
-	allArgs := []string{"terraform"}
-	allArgs = append(allArgs, args...)
-
+// getTerraformEnv returns the appropriate Env for the Terraform command.
+func getTerraformEnv() []string {
 	var env []string
 	for _, e := range os.Environ() {
 		env = append(env, e)
 	}
-	env = append(env, "TF_INPUT=0")
-	env = append(env, "TF_LOG=") // so logging can't pollute our stderr output
-
-	var errBuf strings.Builder
 
 	// FIXME: Ideally in testing.Verbose mode we'd turn on Terraform DEBUG
 	// logging, perhaps redirected to a separate fd other than stderr to avoid
@@ -50,12 +42,32 @@ func (wd *WorkingDir) runTerraform(args ...string) error {
 	// they are visible to the person running the test. Currently though,
 	// Terraform CLI is able to send logs only to either an on-disk file or
 	// to stderr.
+	env = append(env, "TF_LOG=") // so logging can't pollute our stderr output
+	env = append(env, "TF_INPUT=0")
+
+	if p := os.Getenv("TFTEST_LOG_PATH"); p != "" {
+		env = append(env, "TF_LOG=TRACE")
+		env = append(env, "TF_LOG_PATH="+p)
+	}
+	return env
+}
+
+// RunTerraform runs the configured Terraform CLI executable with the given
+// arguments, returning an error if it produces a non-successful exit status.
+func (wd *WorkingDir) runTerraform(args ...string) error {
+	allArgs := []string{"terraform"}
+	allArgs = append(allArgs, args...)
+
+	env := getTerraformEnv()
+
+	var errBuf strings.Builder
 
 	cmd := &exec.Cmd{
 		Path:   wd.h.TerraformExecPath(),
 		Args:   allArgs,
 		Dir:    wd.baseDir,
 		Stderr: &errBuf,
+		Env:    env,
 	}
 	err := cmd.Run()
 	if tErr, ok := err.(*exec.ExitError); ok {
@@ -71,12 +83,7 @@ func (wd *WorkingDir) runTerraformJSON(target interface{}, args ...string) error
 	allArgs := []string{"terraform"}
 	allArgs = append(allArgs, args...)
 
-	var env []string
-	for _, e := range os.Environ() {
-		env = append(env, e)
-	}
-	env = append(env, "TF_INPUT=0")
-	env = append(env, "TF_LOG=") // so logging can't pollute our stderr output
+	env := getTerraformEnv()
 
 	var outBuf bytes.Buffer
 	var errBuf strings.Builder
@@ -87,6 +94,7 @@ func (wd *WorkingDir) runTerraformJSON(target interface{}, args ...string) error
 		Dir:    wd.baseDir,
 		Stderr: &errBuf,
 		Stdout: &outBuf,
+		Env:    env,
 	}
 	err := cmd.Run()
 	if err != nil {
