@@ -301,3 +301,19 @@ func (wd *WorkingDir) RequireImport(t TestControl, resource, id string) {
 		t.Fatalf("failed to import: %s", err)
 	}
 }
+
+// Refresh runs terraform refresh
+func (wd *WorkingDir) Refresh() error {
+	args := []string{"refresh"}
+	return wd.runTerraform(args...)
+}
+
+// RequireRefresh is a variant of Refresh that will fail the test via
+// the given TestControl if the refresh is non successful.
+func (wd *WorkingDir) RequireRefresh(t TestControl) {
+	t.Helper()
+	if err := wd.Refresh(); err != nil {
+		t := testingT{t}
+		t.Fatalf("failed to refresh: %s", err)
+	}
+}
