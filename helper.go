@@ -19,8 +19,8 @@ const subprocessPreviousSigil = "2279afb8cf71423996be1fd65d32f13b"
 // available for upgrade tests, and then will return an object containing the
 // results of that initialization which can then be stored in a global variable
 // for use in other tests.
-func AutoInitProviderHelper(name string) *Helper {
-	helper, err := AutoInitHelper("terraform-provider-" + name)
+func AutoInitProviderHelper(name string, sourceDir string) *Helper {
+	helper, err := AutoInitHelper("terraform-provider-"+name, sourceDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "cannot run Terraform provider tests: %s\n", err)
 		os.Exit(1)
@@ -31,7 +31,11 @@ func AutoInitProviderHelper(name string) *Helper {
 // Helper is intended as a per-package singleton created in TestMain which
 // other tests in a package can use to create Terraform execution contexts
 type Helper struct {
-	baseDir                      string
+	baseDir string
+
+	// sourceDir is the dir containing the provider source code, needed
+	// for tests that use fixture files.
+	sourceDir                    string
 	pluginName                   string
 	terraformExec                string
 	thisPluginDir, prevPluginDir string
@@ -42,8 +46,8 @@ type Helper struct {
 // way to get the standard init behavior based on environment variables, and
 // callers should use this unless they have an unusual requirement that calls
 // for constructing a config in a different way.
-func AutoInitHelper(pluginName string) (*Helper, error) {
-	config, err := DiscoverConfig(pluginName)
+func AutoInitHelper(pluginName string, sourceDir string) (*Helper, error) {
+	config, err := DiscoverConfig(pluginName, sourceDir)
 	if err != nil {
 		return nil, err
 	}
@@ -94,6 +98,7 @@ func InitHelper(config *Config) (*Helper, error) {
 
 	return &Helper{
 		baseDir:       baseDir,
+		sourceDir:     config.SourceDir,
 		pluginName:    config.PluginName,
 		terraformExec: config.TerraformExec,
 		thisPluginDir: thisPluginDir,
@@ -118,6 +123,12 @@ func (h *Helper) Close() error {
 // delete it.
 func (h *Helper) NewWorkingDir() (*WorkingDir, error) {
 	dir, err := ioutil.TempDir(h.baseDir, "work")
+	if err != nil {
+		return nil, err
+	}
+
+	// copy the provider source files into the base directory
+	err = copyDir(h.sourceDir, dir)
 	if err != nil {
 		return nil, err
 	}

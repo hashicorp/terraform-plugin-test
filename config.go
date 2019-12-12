@@ -11,6 +11,7 @@ import (
 // implemented by direct configuration.
 type Config struct {
 	PluginName         string
+	SourceDir          string
 	TerraformExec      string
 	CurrentPluginExec  string
 	PreviousPluginExec string
@@ -18,7 +19,7 @@ type Config struct {
 
 // DiscoverConfig uses environment variables and other means to automatically
 // discover a reasonable test helper configuration.
-func DiscoverConfig(pluginName string) (*Config, error) {
+func DiscoverConfig(pluginName string, sourceDir string) (*Config, error) {
 	tfExec := FindTerraform()
 	if tfExec == "" {
 		return nil, fmt.Errorf("unable to find 'terraform' executable for testing; either place it in PATH or set TFTEST_TERRAFORM explicitly to a direct executable path")
@@ -34,6 +35,7 @@ func DiscoverConfig(pluginName string) (*Config, error) {
 
 	return &Config{
 		PluginName:         pluginName,
+		SourceDir:          sourceDir,
 		TerraformExec:      tfExec,
 		CurrentPluginExec:  os.Args[0],
 		PreviousPluginExec: os.Getenv("TFTEST_PREVIOUS_EXEC"),

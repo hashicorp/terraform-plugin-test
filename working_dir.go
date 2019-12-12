@@ -14,8 +14,12 @@ import (
 // NewWorkingDir or RequireNewWorkingDir on its package's singleton
 // tftest.Helper.
 type WorkingDir struct {
-	h         *Helper
-	baseDir   string
+	h *Helper
+
+	// baseDir is the root of the working directory tree
+	baseDir string
+
+	// configDir contains the singular config file generated for each test
 	configDir string
 }
 
@@ -39,11 +43,12 @@ func (wd *WorkingDir) SetConfig(cfg string) error {
 	if err != nil {
 		return err
 	}
-	configFilename := filepath.Join(configDir, "test.tf")
+	configFilename := filepath.Join(configDir, "terraform_plugin_test.tf")
 	err = ioutil.WriteFile(configFilename, []byte(cfg), 0700)
 	if err != nil {
 		return err
 	}
+
 	wd.configDir = configDir
 
 	// Changing configuration invalidates any saved plan.
