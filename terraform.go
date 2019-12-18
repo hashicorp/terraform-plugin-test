@@ -55,6 +55,8 @@ func InstallTerraform(tfVersion string) (string, error) {
 	cmd.Stderr = &errBuf
 
 	cmd.Env = append(os.Environ(),
+		"GO111MODULE=on",
+		"GOMOD=/dev/null",
 		"GOPATH="+tfDir,
 		"GOBIN="+goBin,
 	)
