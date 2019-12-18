@@ -20,10 +20,21 @@ type Config struct {
 // DiscoverConfig uses environment variables and other means to automatically
 // discover a reasonable test helper configuration.
 func DiscoverConfig(pluginName string, sourceDir string) (*Config, error) {
-	tfExec := FindTerraform()
-	if tfExec == "" {
-		return nil, fmt.Errorf("unable to find 'terraform' executable for testing; either place it in PATH or set TFTEST_TERRAFORM explicitly to a direct executable path")
+	var tfExec string
+	var err error
+	tfVersion := os.Getenv("TF_ACC_TERRAFORM_VERSION")
+	if tfVersion == "" {
+		tfExec = FindTerraform()
+		if tfExec == "" {
+			return nil, fmt.Errorf("unable to find 'terraform' executable for testing; either place it in PATH or set TFTEST_TERRAFORM explicitly to a direct executable path")
+		}
+	} else {
+		tfExec, err = InstallTerraform(tfVersion)
+		if err != nil {
+			return nil, fmt.Errorf("could not install Terraform version %s: %s", tfVersion, err)
+		}
 	}
+
 	prevExec := os.Getenv("TFTEST_PREVIOUS_EXEC")
 	if prevExec != "" {
 		if info, err := os.Stat(prevExec); err != nil {

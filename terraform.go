@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -27,6 +29,43 @@ func FindTerraform() string {
 		return ""
 	}
 	return p
+}
+
+// InstallTerraform downloads and installs a Terraform CLI executable with the
+// specified version, using go get.
+//
+// The version string is passed directly to go get, so it must match an existing
+// git tag or the string "latest".
+//
+// The terraform executable is installed to a temporary folder, along with all
+// dependencies, in a clean GOPATH environment.
+//
+// FIXME: Temporary folder should be cleaned up after tests have finished.
+func InstallTerraform(tfVersion string) (string, error) {
+	tfDir, err := ioutil.TempDir("", "tftest-terraform")
+	if err != nil {
+		return "", err
+	}
+
+	goBin := filepath.Join(tfDir, "bin")
+
+	var errBuf strings.Builder
+	cmd := exec.Command("go", "get", "github.com/hashicorp/terraform@"+tfVersion)
+	cmd.Dir = tfDir
+	cmd.Stderr = &errBuf
+
+	cmd.Env = append(os.Environ(),
+		"GOPATH="+tfDir,
+		"GOBIN="+goBin,
+	)
+
+	err = cmd.Run()
+	if tErr, ok := err.(*exec.ExitError); ok {
+		err = fmt.Errorf("failed to install terraform: %s\n\nstderr:\n%s", tErr.ProcessState.String(), errBuf.String())
+		return "", err
+	}
+
+	return filepath.Join(goBin, "terraform"), nil
 }
 
 // getTerraformEnv returns the appropriate Env for the Terraform command.
