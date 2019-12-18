@@ -14,14 +14,14 @@ import (
 // FindTerraform attempts to find a Terraform CLI executable for plugin testing.
 //
 // As a first preference it will look for the environment variable
-// TFTEST_TERRAFORM and return its value. If that variable is not set, it will
+// TF_ACC_TERRAFORM_PATH and return its value. If that variable is not set, it will
 // look in PATH for a program named "terraform" and, if one is found, return
 // its absolute path.
 //
 // If no Terraform executable can be found, the result is the empty string. In
 // that case, the test program will usually fail outright.
 func FindTerraform() string {
-	if p := os.Getenv("TFTEST_TERRAFORM"); p != "" {
+	if p := os.Getenv("TF_ACC_TERRAFORM_PATH"); p != "" {
 		return p
 	}
 	p, err := exec.LookPath("terraform")
@@ -84,7 +84,7 @@ func getTerraformEnv() []string {
 	env = append(env, "TF_LOG=") // so logging can't pollute our stderr output
 	env = append(env, "TF_INPUT=0")
 
-	if p := os.Getenv("TFTEST_LOG_PATH"); p != "" {
+	if p := os.Getenv("TF_ACC_LOG_PATH"); p != "" {
 		env = append(env, "TF_LOG=TRACE")
 		env = append(env, "TF_LOG_PATH="+p)
 	}
