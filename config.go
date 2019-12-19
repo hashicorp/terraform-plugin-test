@@ -20,16 +20,27 @@ type Config struct {
 // DiscoverConfig uses environment variables and other means to automatically
 // discover a reasonable test helper configuration.
 func DiscoverConfig(pluginName string, sourceDir string) (*Config, error) {
-	tfExec := FindTerraform()
-	if tfExec == "" {
-		return nil, fmt.Errorf("unable to find 'terraform' executable for testing; either place it in PATH or set TFTEST_TERRAFORM explicitly to a direct executable path")
+	var tfExec string
+	var err error
+	tfVersion := os.Getenv("TF_ACC_TERRAFORM_VERSION")
+	if tfVersion == "" {
+		tfExec = FindTerraform()
+		if tfExec == "" {
+			return nil, fmt.Errorf("unable to find 'terraform' executable for testing; either place it in PATH or set TF_ACC_TERRAFORM_PATH explicitly to a direct executable path")
+		}
+	} else {
+		tfExec, err = InstallTerraform(tfVersion)
+		if err != nil {
+			return nil, fmt.Errorf("could not install Terraform version %s: %s", tfVersion, err)
+		}
 	}
-	prevExec := os.Getenv("TFTEST_PREVIOUS_EXEC")
+
+	prevExec := os.Getenv("TF_ACC_PREVIOUS_EXEC")
 	if prevExec != "" {
 		if info, err := os.Stat(prevExec); err != nil {
-			return nil, fmt.Errorf("TFTEST_PREVIOUS_EXEC of %s cannot be used: %s", prevExec, err)
+			return nil, fmt.Errorf("TF_ACC_PREVIOUS_EXEC of %s cannot be used: %s", prevExec, err)
 		} else if info.IsDir() {
-			return nil, fmt.Errorf("TFTEST_PREVIOUS_EXEC of %s is directory, not file", prevExec)
+			return nil, fmt.Errorf("TF_ACC_PREVIOUS_EXEC of %s is directory, not file", prevExec)
 		}
 	}
 
@@ -38,6 +49,6 @@ func DiscoverConfig(pluginName string, sourceDir string) (*Config, error) {
 		SourceDir:          sourceDir,
 		TerraformExec:      tfExec,
 		CurrentPluginExec:  os.Args[0],
-		PreviousPluginExec: os.Getenv("TFTEST_PREVIOUS_EXEC"),
+		PreviousPluginExec: os.Getenv("TF_ACC_PREVIOUS_EXEC"),
 	}, nil
 }

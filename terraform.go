@@ -4,22 +4,28 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	getter "github.com/hashicorp/go-getter"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 )
+
+const releaseHost = "https://releases.hashicorp.com"
 
 // FindTerraform attempts to find a Terraform CLI executable for plugin testing.
 //
 // As a first preference it will look for the environment variable
-// TFTEST_TERRAFORM and return its value. If that variable is not set, it will
+// TF_ACC_TERRAFORM_PATH and return its value. If that variable is not set, it will
 // look in PATH for a program named "terraform" and, if one is found, return
 // its absolute path.
 //
 // If no Terraform executable can be found, the result is the empty string. In
 // that case, the test program will usually fail outright.
 func FindTerraform() string {
-	if p := os.Getenv("TFTEST_TERRAFORM"); p != "" {
+	if p := os.Getenv("TF_ACC_TERRAFORM_PATH"); p != "" {
 		return p
 	}
 	p, err := exec.LookPath("terraform")
@@ -27,6 +33,48 @@ func FindTerraform() string {
 		return ""
 	}
 	return p
+}
+
+func tfURL(version, osName, archName string) string {
+	return fmt.Sprintf(
+		"%s/terraform/%s/terraform_%s_%s_%s.zip",
+		releaseHost, version, version, osName, archName,
+	)
+}
+
+// InstallTerraform downloads and decompresses a Terraform CLI executable with
+// the specified version, downloaded from the HashiCorp releases page over HTTP.
+//
+// The version string must match an existing Terraform release semver version,
+// e.g. 0.12.5.
+//
+// The terraform executable is installed to a temporary folder.
+//
+// FIXME: Temporary folder should be cleaned up after tests have finished.
+func InstallTerraform(tfVersion string) (string, error) {
+	osName := runtime.GOOS
+	archName := runtime.GOARCH
+
+	tfDir, err := ioutil.TempDir("", "tftest-terraform")
+	if err != nil {
+		return "", err
+	}
+
+	url := tfURL(tfVersion, osName, archName)
+
+	client := getter.Client{
+		Src: url,
+		Dst: tfDir,
+
+		Mode: getter.ClientModeDir,
+	}
+
+	err = client.Get()
+	if err != nil {
+		return "", fmt.Errorf("failed to download terraform from %s: %s", url, err)
+	}
+
+	return filepath.Join(tfDir, "terraform"), nil
 }
 
 // getTerraformEnv returns the appropriate Env for the Terraform command.
@@ -45,7 +93,7 @@ func getTerraformEnv() []string {
 	env = append(env, "TF_LOG=") // so logging can't pollute our stderr output
 	env = append(env, "TF_INPUT=0")
 
-	if p := os.Getenv("TFTEST_LOG_PATH"); p != "" {
+	if p := os.Getenv("TF_ACC_LOG_PATH"); p != "" {
 		env = append(env, "TF_LOG=TRACE")
 		env = append(env, "TF_LOG_PATH="+p)
 	}
