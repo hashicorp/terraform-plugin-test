@@ -56,14 +56,13 @@ func InstallTerraform(tfVersion string) (string, error) {
 
 	cmd.Env = append(os.Environ(),
 		"GO111MODULE=on",
-		"GOMOD=/dev/null",
 		"GOPATH="+tfDir,
 		"GOBIN="+goBin,
 	)
 
 	err = cmd.Run()
 	if tErr, ok := err.(*exec.ExitError); ok {
-		err = fmt.Errorf("failed to install terraform: %s\n\nstderr:\n%s", tErr.ProcessState.String(), errBuf.String())
+		err = fmt.Errorf("failed to install terraform: %s\n\nstderr:\n%s\nenv:\n%s", tErr.ProcessState.String(), errBuf.String(), os.Environ())
 		return "", err
 	}
 
