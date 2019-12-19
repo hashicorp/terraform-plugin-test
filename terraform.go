@@ -55,9 +55,13 @@ func InstallTerraform(tfVersion string) (string, error) {
 	osName := runtime.GOOS
 	archName := runtime.GOARCH
 
-	tfDir, err := ioutil.TempDir("", "tftest-terraform")
+	var tfDir string
+	var err error
+
+	tempDir := os.Getenv("TF_ACC_TEMP_DIR")
+	tfDir, err = ioutil.TempDir(tempDir, "tftest-terraform")
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create temp dir: %s", err)
 	}
 
 	url := tfURL(tfVersion, osName, archName)
