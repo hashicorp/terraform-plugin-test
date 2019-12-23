@@ -66,10 +66,12 @@ func AutoInitHelper(pluginName string, sourceDir string) (*Helper, error) {
 // automatically clean those up.
 func InitHelper(config *Config) (*Helper, error) {
 	tempDir := os.Getenv("TF_ACC_TEMP_DIR")
+	fmt.Printf("TFTEST DEBUG: tempDir %s", tempDir)
 	baseDir, err := ioutil.TempDir(tempDir, "tftest-"+config.PluginName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary directory for test helper: %s", err)
 	}
+	fmt.Printf("TFTEST DEBUG: basedir %s", baseDir)
 
 	var thisPluginDir, prevPluginDir string
 	if config.CurrentPluginExec != "" {

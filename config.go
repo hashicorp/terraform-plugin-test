@@ -35,6 +35,8 @@ func DiscoverConfig(pluginName string, sourceDir string) (*Config, error) {
 		}
 	}
 
+	fmt.Printf("TFTEST DEBUG: tfExec %s", tfExec)
+
 	prevExec := os.Getenv("TF_ACC_PREVIOUS_EXEC")
 	if prevExec != "" {
 		if info, err := os.Stat(prevExec); err != nil {
@@ -43,6 +45,8 @@ func DiscoverConfig(pluginName string, sourceDir string) (*Config, error) {
 			return nil, fmt.Errorf("TF_ACC_PREVIOUS_EXEC of %s is directory, not file", prevExec)
 		}
 	}
+
+	fmt.Printf("TFTEST DEBUG: os.Args %+v, pluginName %s, sourceDir %s", os.Args, pluginName, sourceDir)
 
 	return &Config{
 		PluginName:         pluginName,
