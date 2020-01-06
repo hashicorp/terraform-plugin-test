@@ -73,6 +73,14 @@ func InitHelper(config *Config) (*Helper, error) {
 	}
 	fmt.Printf("TFTEST DEBUG: basedir %s", baseDir)
 
+	workingDir, _ := os.Getwd()
+	fmt.Printf("TFTEST DEBUG: workingdir %s", workingDir)
+
+	fmt.Printf("TFTEST DEBUG: currentpluginexec %s", config.CurrentPluginExec)
+
+	files, _ := filepath.Glob("*")
+	fmt.Printf("TFTEST DEBUG: files %s", files)
+
 	var thisPluginDir, prevPluginDir string
 	if config.CurrentPluginExec != "" {
 		thisPluginDir, err = ioutil.TempDir(baseDir, "plugins-current")
