@@ -3,6 +3,7 @@ package tftest
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 // Config is used to configure the test helper. In most normal test programs
@@ -48,11 +49,19 @@ func DiscoverConfig(pluginName string, sourceDir string) (*Config, error) {
 
 	fmt.Printf("TFTEST DEBUG: os.Args %+v, pluginName %s, sourceDir %s", os.Args, pluginName, sourceDir)
 
+	workingDir, _ := os.Getwd()
+	fmt.Printf("TFTEST DEBUG: workingdir %s", workingDir)
+
+	absPluginExecPath, err := filepath.Abs(os.Args[0])
+	if err != nil {
+		return nil, fmt.Errorf("could not resolve plugin exec path: %s", err)
+	}
+
 	return &Config{
 		PluginName:         pluginName,
 		SourceDir:          sourceDir,
 		TerraformExec:      tfExec,
-		CurrentPluginExec:  os.Args[0],
+		CurrentPluginExec:  absPluginExecPath,
 		PreviousPluginExec: os.Getenv("TF_ACC_PREVIOUS_EXEC"),
 	}, nil
 }

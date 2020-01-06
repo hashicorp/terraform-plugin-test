@@ -122,6 +122,7 @@ func (wd *WorkingDir) runTerraform(args ...string) error {
 		Env:    env,
 	}
 	err := cmd.Run()
+	fmt.Printf("TFTEST DEBUG: running terraform %s", cmd)
 	if tErr, ok := err.(*exec.ExitError); ok {
 		err = fmt.Errorf("terraform failed: %s\n\nstderr:\n%s", tErr.ProcessState.String(), errBuf.String())
 	}
