@@ -1,41 +1,25 @@
 package tftest
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 )
 
-func copyFile(src string, dest string) (err error) {
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-
-	defer srcFile.Close()
-
-	destFile, err := os.Create(dest)
-	if err != nil {
-		return err
-	}
-
-	defer destFile.Close()
-
-	_, err = io.Copy(destFile, srcFile)
+func symlinkFile(src string, dest string) (err error) {
+	err = os.Symlink(src, dest)
 	if err == nil {
 		srcInfo, err := os.Stat(src)
 		if err != nil {
 			err = os.Chmod(dest, srcInfo.Mode())
 		}
-
 	}
 
 	return
 }
 
-// CopyDir is a simplistic function for recursively copying a directory to a new path.
+// symlinkDir is a simplistic function for recursively symlinking all files in a directory to a new path.
 // It is intended only for limited internal use and does not cover all edge cases.
-func copyDir(srcDir string, destDir string) (err error) {
+func symlinkDir(srcDir string, destDir string) (err error) {
 	srcInfo, err := os.Stat(srcDir)
 	if err != nil {
 		return err
@@ -54,12 +38,12 @@ func copyDir(srcDir string, destDir string) (err error) {
 		destPath := filepath.Join(destDir, obj.Name())
 
 		if obj.IsDir() {
-			err = copyDir(srcPath, destPath)
+			err = symlinkDir(srcPath, destPath)
 			if err != nil {
 				return err
 			}
 		} else {
-			err = copyFile(srcPath, destPath)
+			err = symlinkFile(srcPath, destPath)
 			if err != nil {
 				return err
 			}
