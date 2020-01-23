@@ -6,6 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
+
+	getter "github.com/hashicorp/go-getter"
 )
 
 const subprocessCurrentSigil = "4acd63807899403ca4859f5bb948d2c6"
@@ -134,9 +137,11 @@ func symlinkAuxiliaryProviders(pluginDir string) error {
 	}
 
 	_, err := os.Stat(filepath.Join(providerRootDir, "terraform.d", "plugins"))
-	if err != nil {
+	if os.IsNotExist(err) {
 		fmt.Printf("No terraform.d/plugins directory found: continuing. Unset TF_ACC_PROVIDER_ROOT_DIR or supply provider binaries in terraform.d/plugins/$GOOS_$GOARCH to disable this message.")
 		return nil
+	} else if err != nil {
+		return fmt.Errorf("Unexpected error: %s", err)
 	}
 
 	auxiliaryProviderDir := filepath.Join(providerRootDir, "terraform.d", "plugins", runtime.GOOS+"_"+runtime.GOARCH)
@@ -144,8 +149,10 @@ func symlinkAuxiliaryProviders(pluginDir string) error {
 	// If we can't os.Stat() terraform.d/plugins/$GOOS_$GOARCH, however,
 	// assume the omission was unintentional, and error.
 	_, err = os.Stat(auxiliaryProviderDir)
-	if err != nil {
+	if os.IsNotExist(err) {
 		return fmt.Errorf("error finding auxiliary provider dir %s: %s", auxiliaryProviderDir, err)
+	} else if err != nil {
+		return fmt.Errorf("Unexpected error: %s", err)
 	}
 
 	// now find all the providers in that dir and symlink them to the plugin dir
@@ -154,11 +161,35 @@ func symlinkAuxiliaryProviders(pluginDir string) error {
 		return fmt.Errorf("error reading auxiliary providers: %s", err)
 	}
 
+	zipDecompressor := new(getter.ZipDecompressor)
+
 	for _, provider := range providers {
-		providerName := provider.Name()
-		err := symlinkFile(filepath.Join(auxiliaryProviderDir, providerName), filepath.Join(pluginDir, providerName))
+		filename := provider.Name()
+		filenameExt := filepath.Ext(filename)
+		name := strings.TrimSuffix(filename, filenameExt)
+		path := filepath.Join(auxiliaryProviderDir, name)
+		symlinkPath := filepath.Join(pluginDir, name)
+
+		// exit early if we have already symlinked this provider
+		_, err := os.Stat(symlinkPath)
+		if err == nil {
+			continue
+		}
+
+		// if filename ends in .zip, assume it is a zip and extract it
+		// otherwise assume it is a provider binary
+		if filenameExt == ".zip" {
+			_, err = os.Stat(path)
+			if os.IsNotExist(err) {
+				zipDecompressor.Decompress(path, filepath.Join(auxiliaryProviderDir, filename), false)
+			} else if err != nil {
+				return fmt.Errorf("Unexpected error: %s", err)
+			}
+		}
+
+		err = symlinkFile(path, symlinkPath)
 		if err != nil {
-			return fmt.Errorf("error symlinking auxiliary provider %s: %s", providerName, err)
+			return fmt.Errorf("error symlinking auxiliary provider %s: %s", name, err)
 		}
 	}
 
