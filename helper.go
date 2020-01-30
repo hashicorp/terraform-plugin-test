@@ -135,8 +135,9 @@ func (h *Helper) NewWorkingDir() (*WorkingDir, error) {
 	}
 
 	return &WorkingDir{
-		h:       h,
-		baseDir: dir,
+		h:        h,
+		baseArgs: []string{"-no-color"},
+		baseDir:  dir,
 	}, nil
 }
 
