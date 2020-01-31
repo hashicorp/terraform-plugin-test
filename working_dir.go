@@ -169,7 +169,7 @@ func (wd *WorkingDir) planFilename() string {
 // CreatePlan runs "terraform plan" to create a saved plan file, which if successful
 // will then be used for the next call to Apply.
 func (wd *WorkingDir) CreatePlan() error {
-	args := []string{"plan"}
+	args := []string{"plan", "-refresh=false"}
 	args = append(args, wd.baseArgs...)
 	args = append(args, "-out=tfplan", wd.configDir)
 	return wd.runTerraform(args...)
@@ -190,7 +190,7 @@ func (wd *WorkingDir) RequireCreatePlan(t TestControl) {
 // this will apply the saved plan. Otherwise, it will implicitly create a new
 // plan and apply it.
 func (wd *WorkingDir) Apply() error {
-	args := []string{"apply"}
+	args := []string{"apply", "-refresh=false"}
 	args = append(args, wd.baseArgs...)
 
 	if wd.HasSavedPlan() {
@@ -219,7 +219,7 @@ func (wd *WorkingDir) RequireApply(t TestControl) {
 // If destroy fails then remote objects might still exist, and continue to
 // exist after a particular test is concluded.
 func (wd *WorkingDir) Destroy() error {
-	args := []string{"destroy"}
+	args := []string{"destroy", "-refresh=false"}
 	args = append(args, wd.baseArgs...)
 
 	args = append(args, "-auto-approve", wd.configDir)
