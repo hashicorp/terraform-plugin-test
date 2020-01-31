@@ -1,4 +1,4 @@
-module github.com/apparentlymart/terraform-plugin-test
+module github.com/hashicorp/terraform-plugin-test
 
 go 1.12
 
