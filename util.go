@@ -31,6 +31,7 @@ func symlinkDir(srcDir string, destDir string) (err error) {
 	}
 
 	directory, _ := os.Open(srcDir)
+	defer directory.Close()
 	objects, err := directory.Readdir(-1)
 
 	for _, obj := range objects {
