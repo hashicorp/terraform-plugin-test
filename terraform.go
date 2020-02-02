@@ -89,19 +89,17 @@ func getTerraformEnv() []string {
 	}
 
 	env = append(env, "TF_DISABLE_PLUGIN_TLS=1")
-
-	// FIXME: Ideally in testing.Verbose mode we'd turn on Terraform DEBUG
-	// logging, perhaps redirected to a separate fd other than stderr to avoid
-	// polluting it, and then propagate the log lines out into t.Log so that
-	// they are visible to the person running the test. Currently though,
-	// Terraform CLI is able to send logs only to either an on-disk file or
-	// to stderr.
-	env = append(env, "TF_LOG=") // so logging can't pollute our stderr output
+	env = append(env, "TF_SKIP_PROVIDER_VERIFY=1")
 	env = append(env, "TF_INPUT=0")
 
-	if p := os.Getenv("TF_ACC_LOG_PATH"); p != "" {
-		env = append(env, "TF_LOG=TRACE")
-		env = append(env, "TF_LOG_PATH="+p)
+	if p := os.Getenv("TF_LOG_PATH"); p == "" {
+		// FIXME: Ideally in testing.Verbose mode we'd turn on Terraform DEBUG
+		// logging, perhaps redirected to a separate fd other than stderr to avoid
+		// polluting it, and then propagate the log lines out into t.Log so that
+		// they are visible to the person running the test. Currently though,
+		// Terraform CLI is able to send logs only to either an on-disk file or
+		// to stderr.
+		env = append(env, "TF_LOG=") // so logging can't pollute our stderr output
 	}
 	return env
 }
