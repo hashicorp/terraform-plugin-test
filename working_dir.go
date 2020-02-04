@@ -334,6 +334,8 @@ func (wd *WorkingDir) RequireImport(t TestControl, resource, id string) {
 func (wd *WorkingDir) Refresh() error {
 	args := []string{"refresh"}
 	args = append(args, wd.baseArgs...)
+	args = append(args, "-state="+filepath.Join(wd.baseDir, "terraform.tfstate"))
+	args = append(args, wd.configDir)
 	return wd.runTerraform(args...)
 }
 
