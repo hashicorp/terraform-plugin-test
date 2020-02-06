@@ -217,8 +217,14 @@ func (h *Helper) NewWorkingDir() (*WorkingDir, error) {
 		return nil, err
 	}
 
-	// copy the provider source files into the base directory
+	// symlink the provider source files into the base directory
 	err = symlinkDir(h.sourceDir, dir)
+	if err != nil {
+		return nil, err
+	}
+
+	// symlink the provider binaries into the base directory
+	err = symlinkDir(h.thisPluginDir, dir)
 	if err != nil {
 		return nil, err
 	}
