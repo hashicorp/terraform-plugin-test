@@ -348,3 +348,31 @@ func (wd *WorkingDir) RequireRefresh(t TestControl) {
 		t.Fatalf("failed to refresh: %s", err)
 	}
 }
+
+// Schemas returns an object describing the provider schemas.
+//
+// If the schemas cannot be read, Schemas returns an error.
+func (wd *WorkingDir) Schemas() (*tfjson.ProviderSchemas, error) {
+	args := []string{"providers", wd.configDir, "schema"}
+
+	var ret tfjson.ProviderSchemas
+	err := wd.runTerraformJSON(&ret, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
+}
+
+// RequireSchemas is a variant of Schemas that will fail the test via
+// the given TestControl if the schemas cannot be read.
+func (wd *WorkingDir) RequireSchemas(t TestControl) *tfjson.ProviderSchemas {
+	t.Helper()
+
+	ret, err := wd.Schemas()
+	if err != nil {
+		t := testingT{t}
+		t.Fatalf("failed to read schemas: %s", err)
+	}
+	return ret
+}
