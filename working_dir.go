@@ -257,16 +257,16 @@ func (wd *WorkingDir) SavedPlan() (*tfjson.Plan, error) {
 	}
 
 	var ret tfjson.Plan
+
 	args := []string{"show"}
 	args = append(args, wd.baseArgs...)
 	args = append(args, "-json", wd.planFilename())
+
 	err := wd.runTerraformJSON(&ret, args...)
 	if err != nil {
 		return nil, err
 	}
-	if err := ret.Validate(); err != nil {
-		return nil, err
-	}
+
 	return &ret, nil
 }
 
@@ -287,16 +287,16 @@ func (wd *WorkingDir) RequireSavedPlan(t TestControl) *tfjson.Plan {
 // If the state cannot be read, State returns an error.
 func (wd *WorkingDir) State() (*tfjson.State, error) {
 	var ret tfjson.State
+
 	args := []string{"show"}
 	args = append(args, wd.baseArgs...)
 	args = append(args, "-json")
+
 	err := wd.runTerraformJSON(&ret, args...)
 	if err != nil {
 		return nil, err
 	}
-	if err := ret.Validate(); err != nil {
-		return nil, err
-	}
+
 	return &ret, nil
 }
 
