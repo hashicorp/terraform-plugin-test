@@ -116,7 +116,6 @@ func (wd *WorkingDir) RequireClearPlan(t TestControl) {
 func (wd *WorkingDir) init(pluginDir string) error {
 	args := []string{"init"}
 	args = append(args, wd.baseArgs...)
-	args = append(args, "-plugin-dir="+pluginDir, wd.configDir)
 	return wd.runTerraform(args...)
 }
 
