@@ -53,3 +53,35 @@ func symlinkDir(srcDir string, destDir string) (err error) {
 	}
 	return
 }
+
+// symlinkDirConservatively attempts to limit the number of symlinks created,
+// by only creating one symlink for each child directory, non-recursively
+func symlinkDirConservatively(srcDir string, destDir string) (err error) {
+	srcInfo, err := os.Stat(srcDir)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(destDir, srcInfo.Mode())
+	if err != nil {
+		return err
+	}
+
+	directory, _ := os.Open(srcDir)
+	defer directory.Close()
+	objects, err := directory.Readdir(-1)
+
+	for _, obj := range objects {
+		srcPath := filepath.Join(srcDir, obj.Name())
+		destPath := filepath.Join(destDir, obj.Name())
+
+		if obj.IsDir() {
+			err = symlinkFile(srcPath, destPath)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+	return
+}

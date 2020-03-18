@@ -218,7 +218,7 @@ func (h *Helper) NewWorkingDir() (*WorkingDir, error) {
 	}
 
 	// symlink the provider source files into the base directory
-	err = symlinkDir(h.sourceDir, dir)
+	err = symlinkDirConservatively(h.sourceDir, dir)
 	if err != nil {
 		return nil, err
 	}
