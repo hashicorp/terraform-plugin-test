@@ -217,8 +217,11 @@ func (h *Helper) NewWorkingDir() (*WorkingDir, error) {
 		return nil, err
 	}
 
+	tfWorkingDir := filepath.Join(dir, "tftest_wd")
+
 	// symlink the provider source files into the base directory
-	err = symlinkDir(h.sourceDir, dir)
+	// KEM NEW: symlink the package directory into a special directory which will be used as a working dir for terraform
+	err = symlinkFile(h.sourceDir, tfWorkingDir)
 	if err != nil {
 		return nil, err
 	}
@@ -230,9 +233,10 @@ func (h *Helper) NewWorkingDir() (*WorkingDir, error) {
 	}
 
 	return &WorkingDir{
-		h:        h,
-		baseArgs: []string{"-no-color"},
-		baseDir:  dir,
+		h:            h,
+		baseArgs:     []string{"-no-color"},
+		baseDir:      dir,
+		tfWorkingDir: tfWorkingDir,
 	}, nil
 }
 

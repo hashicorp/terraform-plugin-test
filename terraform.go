@@ -120,7 +120,7 @@ func (wd *WorkingDir) runTerraform(args ...string) error {
 	cmd := &exec.Cmd{
 		Path:   wd.h.TerraformExecPath(),
 		Args:   allArgs,
-		Dir:    wd.baseDir,
+		Dir:    wd.tfWorkingDir,
 		Stderr: &errBuf,
 		Env:    env,
 	}

@@ -24,6 +24,9 @@ type WorkingDir struct {
 
 	// configDir contains the singular config file generated for each test
 	configDir string
+
+	// KEM NEW
+	tfWorkingDir string
 }
 
 // Close deletes the directories and files created to represent the receiving
