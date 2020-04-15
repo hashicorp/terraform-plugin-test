@@ -196,6 +196,11 @@ func symlinkAuxiliaryProviders(pluginDir string) error {
 	return nil
 }
 
+// GetPluginName returns the configured plugin name.
+func (h *Helper) GetPluginName() string {
+	return h.pluginName
+}
+
 // Close cleans up temporary files and directories created to support this
 // helper, returning an error if any of the cleanup fails.
 //
