@@ -39,7 +39,13 @@ type Helper struct {
 
 	// sourceDir is the dir containing the provider source code, needed
 	// for tests that use fixture files.
-	sourceDir                    string
+	sourceDir string
+
+	// ProviderName is the short provider name, e.g. "random"
+	ProviderName string
+
+	// pluginName is the full name of the plugin binary,
+	// e.g. "terraform-provider-random"
 	pluginName                   string
 	terraformExec                string
 	thisPluginDir, prevPluginDir string
