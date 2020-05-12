@@ -92,6 +92,26 @@ func (wd *WorkingDir) RequireSetConfig(t TestControl, cfg string) {
 	}
 }
 
+// SetInputVars creates a terraform.tfvars file in the working directory.
+func (wd *WorkingDir) SetInputVars(tfvars string) error {
+	tfvarsFilename := filepath.Join(wd.baseDir, "terraform.tfvars")
+	err := ioutil.WriteFile(tfvarsFilename, []byte(tfvars), 0700)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// RequireSetInputVars is a variant of SetInputVars that will fail the test via the
+// given TestControl if the terraform.tfvars file cannot be created.
+func (wd *WorkingDir) RequireSetInputVars(t TestControl, tfvars string) {
+	t.Helper()
+	if err := wd.SetInputVars(tfvars); err != nil {
+		t := testingT{t}
+		t.Fatalf("failed to set vars: %s", err)
+	}
+}
+
 // ClearState deletes any Terraform state present in the working directory.
 //
 // Any remote objects tracked by the state are not destroyed first, so this
