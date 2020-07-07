@@ -1,3 +1,9 @@
+# 1.4.3 (July 7, 2020)
+
+DEPENDENCIES:
+
+ - `github.com/hashicorp/go-getter@v1.4.0` ([#29](https://github.com/hashicorp/terraform-plugin-test/pull/29))
+
 # 1.4.2 (July 7, 2020)
 
 DEPENDENCIES:
