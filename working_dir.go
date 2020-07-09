@@ -257,15 +257,7 @@ func (wd *WorkingDir) Destroy() error {
 	args := []string{"destroy", "-refresh=false"}
 	args = append(args, wd.baseArgs...)
 
-	// we need to use a relative config dir here or we get an
-	// error about Terraform not having any configuration. See
-	// https://github.com/hashicorp/terraform-plugin-sdk/issues/495
-	// for more info.
-	configDir, err := wd.relativeConfigDir()
-	if err != nil {
-		return err
-	}
-	args = append(args, "-auto-approve", configDir)
+	args = append(args, "-auto-approve", wd.configDir)
 	return wd.runTerraform(args...)
 }
 
