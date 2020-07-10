@@ -1,3 +1,9 @@
+# 1.4.4 (July 10, 2020)
+
+BUG FIXES:
+
+ - Fix Windows bug in versions of Terraform below 0.13.0-beta2 ([#30](https://github.com/hashicorp/terraform-plugin-test/pull/30))
+
 # 1.4.3 (July 7, 2020)
 
 DEPENDENCIES:
