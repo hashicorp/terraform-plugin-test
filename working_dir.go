@@ -53,6 +53,14 @@ func (wd *WorkingDir) GetHelper() *Helper {
 	return wd.h
 }
 
+func (wd *WorkingDir) relativeConfigDir() (string, error) {
+	relPath, err := filepath.Rel(wd.baseDir, wd.configDir)
+	if err != nil {
+		return "", fmt.Errorf("Error determining relative path of configuration directory: %w", err)
+	}
+	return relPath, nil
+}
+
 // SetConfig sets a new configuration for the working directory.
 //
 // This must be called at least once before any call to Init, Plan, Apply, or
@@ -215,8 +223,16 @@ func (wd *WorkingDir) Apply() error {
 	if wd.HasSavedPlan() {
 		args = append(args, "tfplan")
 	} else {
+		// we need to use a relative config dir here or we get an
+		// error about Terraform not having any configuration. See
+		// https://github.com/hashicorp/terraform-plugin-sdk/issues/495
+		// for more info.
+		configDir, err := wd.relativeConfigDir()
+		if err != nil {
+			return err
+		}
 		args = append(args, "-auto-approve")
-		args = append(args, wd.configDir)
+		args = append(args, configDir)
 	}
 
 	return wd.runTerraform(args...)
