@@ -141,7 +141,7 @@ func (wd *WorkingDir) RequireClearPlan(t TestControl) {
 	}
 }
 
-func (wd *WorkingDir) init(pluginDir string) error {
+func (wd *WorkingDir) init() error {
 	args := []string{"init", wd.configDir}
 	args = append(args, wd.baseArgs...)
 	return wd.runTerraform(args...)
@@ -153,7 +153,7 @@ func (wd *WorkingDir) Init() error {
 	if wd.configDir == "" {
 		return fmt.Errorf("must call SetConfig before Init")
 	}
-	return wd.init(wd.h.PluginDir())
+	return wd.init()
 }
 
 // RequireInit is a variant of Init that will fail the test via the given
@@ -161,29 +161,6 @@ func (wd *WorkingDir) Init() error {
 func (wd *WorkingDir) RequireInit(t TestControl) {
 	t.Helper()
 	if err := wd.Init(); err != nil {
-		t := testingT{t}
-		t.Fatalf("init failed: %s", err)
-	}
-}
-
-// InitPrevious runs "terraform init" for the given working directory, forcing
-// Terraform to use the previous version of the plugin under test.
-//
-// This method will panic if no previous plugin version is available. Use
-// HasPreviousVersion or RequirePreviousVersion on the test helper singleton
-// to check this first.
-func (wd *WorkingDir) InitPrevious() error {
-	if wd.configDir == "" {
-		return fmt.Errorf("must call SetConfig before InitPrevious")
-	}
-	return wd.init(wd.h.PreviousPluginDir())
-}
-
-// RequireInitPrevious is a variant of InitPrevious that will fail the test
-// via the given TestControl if init fails.
-func (wd *WorkingDir) RequireInitPrevious(t TestControl) {
-	t.Helper()
-	if err := wd.InitPrevious(); err != nil {
 		t := testingT{t}
 		t.Fatalf("init failed: %s", err)
 	}
