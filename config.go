@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/hashicorp/terraform-exec/tfinstall"
 )
@@ -14,17 +13,15 @@ import (
 // DiscoverConfig, but this is exposed so that more complex scenarios can be
 // implemented by direct configuration.
 type Config struct {
-	PluginName         string
 	SourceDir          string
 	TerraformExec      string
 	execTempDir        string
-	CurrentPluginExec  string
 	PreviousPluginExec string
 }
 
 // DiscoverConfig uses environment variables and other means to automatically
 // discover a reasonable test helper configuration.
-func DiscoverConfig(pluginName string, sourceDir string) (*Config, error) {
+func DiscoverConfig(sourceDir string) (*Config, error) {
 	tfVersion := os.Getenv("TF_ACC_TERRAFORM_VERSION")
 	tfPath := os.Getenv("TF_ACC_TERRAFORM_PATH")
 
@@ -48,26 +45,9 @@ func DiscoverConfig(pluginName string, sourceDir string) (*Config, error) {
 		return nil, err
 	}
 
-	prevExec := os.Getenv("TF_ACC_PREVIOUS_EXEC")
-	if prevExec != "" {
-		if info, err := os.Stat(prevExec); err != nil {
-			return nil, fmt.Errorf("TF_ACC_PREVIOUS_EXEC of %s cannot be used: %s", prevExec, err)
-		} else if info.IsDir() {
-			return nil, fmt.Errorf("TF_ACC_PREVIOUS_EXEC of %s is directory, not file", prevExec)
-		}
-	}
-
-	absPluginExecPath, err := filepath.Abs(os.Args[0])
-	if err != nil {
-		return nil, fmt.Errorf("could not resolve plugin exec path %s: %s", os.Args[0], err)
-	}
-
 	return &Config{
-		PluginName:         pluginName,
-		SourceDir:          sourceDir,
-		TerraformExec:      tfExec,
-		execTempDir:        tfDir,
-		CurrentPluginExec:  absPluginExecPath,
-		PreviousPluginExec: os.Getenv("TF_ACC_PREVIOUS_EXEC"),
+		SourceDir:     sourceDir,
+		TerraformExec: tfExec,
+		execTempDir:   tfDir,
 	}, nil
 }
