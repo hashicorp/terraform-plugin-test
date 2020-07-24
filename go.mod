@@ -1,4 +1,4 @@
-module github.com/hashicorp/terraform-plugin-test
+module github.com/hashicorp/terraform-plugin-test/v2
 
 go 1.12
 
