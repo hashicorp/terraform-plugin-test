@@ -1,6 +1,7 @@
 package tftest
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -97,6 +98,30 @@ func (wd *WorkingDir) RequireSetConfig(t TestControl, cfg string) {
 	if err := wd.SetConfig(cfg); err != nil {
 		t := testingT{t}
 		t.Fatalf("failed to set config: %s", err)
+	}
+}
+
+// SetInputVars creates a inputs.auto.tfvars.json file in the working directory.
+func (wd *WorkingDir) SetInputVars(tfvars map[string]interface{}) error {
+	tfvarsFilename := filepath.Join(wd.baseDir, "inputs.auto.tfvars.json")
+	b, err := json.Marshal(tfvars)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(tfvarsFilename, b, 0700)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// RequireSetInputVars is a variant of SetInputVars that will fail the test via the
+// given TestControl if the inputs.auto.tfvars.json file cannot be created.
+func (wd *WorkingDir) RequireSetInputVars(t TestControl, tfvars map[string]interface{}) {
+	t.Helper()
+	if err := wd.SetInputVars(tfvars); err != nil {
+		t := testingT{t}
+		t.Fatalf("failed to set vars: %s", err)
 	}
 }
 
