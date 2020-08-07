@@ -1,6 +1,7 @@
 package tftest
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -287,6 +288,41 @@ func (wd *WorkingDir) SavedPlan() (*tfjson.Plan, error) {
 func (wd *WorkingDir) RequireSavedPlan(t TestControl) *tfjson.Plan {
 	t.Helper()
 	ret, err := wd.SavedPlan()
+	if err != nil {
+		t := testingT{t}
+		t.Fatalf("failed to read saved plan: %s", err)
+	}
+	return ret
+}
+
+// SavedPlanRaw returns a stdout capture of the current saved plan file, if any.
+//
+// If no plan is saved or if the plan file cannot be read, SavedPlan returns
+// an error.
+func (wd *WorkingDir) SavedPlanRaw() (string, error) {
+	if !wd.HasSavedPlan() {
+		return "", fmt.Errorf("there is no current saved plan")
+	}
+
+	var ret bytes.Buffer
+
+	args := []string{"show"}
+	args = append(args, wd.baseArgs...)
+	args = append(args, wd.planFilename())
+
+	err := wd.runTerraform(&ret, args...)
+	if err != nil {
+		return "", err
+	}
+
+	return ret.String(), nil
+}
+
+// RequireSavedPlanRaw is a variant of SavedPlanRaw that will fail the test via
+// the given TestControl if the plan cannot be read.
+func (wd *WorkingDir) RequireSavedPlanRaw(t TestControl) string {
+	t.Helper()
+	ret, err := wd.SavedPlanRaw()
 	if err != nil {
 		t := testingT{t}
 		t.Fatalf("failed to read saved plan: %s", err)
