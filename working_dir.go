@@ -144,7 +144,7 @@ func (wd *WorkingDir) RequireClearPlan(t TestControl) {
 func (wd *WorkingDir) init() error {
 	args := []string{"init", wd.configDir}
 	args = append(args, wd.baseArgs...)
-	return wd.runTerraform(args...)
+	return wd.runTerraform(nil, args...)
 }
 
 // Init runs "terraform init" for the given working directory, forcing Terraform
@@ -176,7 +176,7 @@ func (wd *WorkingDir) CreatePlan() error {
 	args := []string{"plan", "-refresh=false"}
 	args = append(args, wd.baseArgs...)
 	args = append(args, "-out=tfplan", wd.configDir)
-	return wd.runTerraform(args...)
+	return wd.runTerraform(nil, args...)
 }
 
 // RequireCreatePlan is a variant of CreatePlan that will fail the test via
@@ -212,7 +212,7 @@ func (wd *WorkingDir) Apply() error {
 		args = append(args, configDir)
 	}
 
-	return wd.runTerraform(args...)
+	return wd.runTerraform(nil, args...)
 }
 
 // RequireApply is a variant of Apply that will fail the test via
@@ -235,7 +235,7 @@ func (wd *WorkingDir) Destroy() error {
 	args = append(args, wd.baseArgs...)
 
 	args = append(args, "-auto-approve", wd.configDir)
-	return wd.runTerraform(args...)
+	return wd.runTerraform(nil, args...)
 }
 
 // RequireDestroy is a variant of Destroy that will fail the test via
@@ -329,7 +329,7 @@ func (wd *WorkingDir) Import(resource, id string) error {
 	args := []string{"import"}
 	args = append(args, wd.baseArgs...)
 	args = append(args, "-config="+wd.configDir, resource, id)
-	return wd.runTerraform(args...)
+	return wd.runTerraform(nil, args...)
 }
 
 // RequireImport is a variant of Import that will fail the test via
@@ -348,7 +348,7 @@ func (wd *WorkingDir) Refresh() error {
 	args = append(args, wd.baseArgs...)
 	args = append(args, "-state="+filepath.Join(wd.baseDir, "terraform.tfstate"))
 	args = append(args, wd.configDir)
-	return wd.runTerraform(args...)
+	return wd.runTerraform(nil, args...)
 }
 
 // RequireRefresh is a variant of Refresh that will fail the test via
