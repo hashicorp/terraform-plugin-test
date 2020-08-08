@@ -1,3 +1,9 @@
+# 2.0.0 (Unreleased)
+
+FEATURES:
+
+ - Simplified API signatures to reflect no longer needing provider name [GH-32]
+
 # 1.4.4 (July 10, 2020)
 
 BUG FIXES:
