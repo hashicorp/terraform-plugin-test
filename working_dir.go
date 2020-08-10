@@ -295,11 +295,11 @@ func (wd *WorkingDir) RequireSavedPlan(t TestControl) *tfjson.Plan {
 	return ret
 }
 
-// SavedPlanRaw returns a stdout capture of the current saved plan file, if any.
+// SavedPlanStdout returns a stdout capture of the current saved plan file, if any.
 //
-// If no plan is saved or if the plan file cannot be read, SavedPlan returns
+// If no plan is saved or if the plan file cannot be read, SavedPlanStdout returns
 // an error.
-func (wd *WorkingDir) SavedPlanRaw() (string, error) {
+func (wd *WorkingDir) SavedPlanStdout() (string, error) {
 	if !wd.HasSavedPlan() {
 		return "", fmt.Errorf("there is no current saved plan")
 	}
@@ -318,11 +318,11 @@ func (wd *WorkingDir) SavedPlanRaw() (string, error) {
 	return ret.String(), nil
 }
 
-// RequireSavedPlanRaw is a variant of SavedPlanRaw that will fail the test via
+// RequireSavedPlanStdout is a variant of SavedPlanStdout that will fail the test via
 // the given TestControl if the plan cannot be read.
 func (wd *WorkingDir) RequireSavedPlanRaw(t TestControl) string {
 	t.Helper()
-	ret, err := wd.SavedPlanRaw()
+	ret, err := wd.SavedPlanStdout()
 	if err != nil {
 		t := testingT{t}
 		t.Fatalf("failed to read saved plan: %s", err)
