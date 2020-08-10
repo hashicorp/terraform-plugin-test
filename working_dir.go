@@ -320,7 +320,7 @@ func (wd *WorkingDir) SavedPlanStdout() (string, error) {
 
 // RequireSavedPlanStdout is a variant of SavedPlanStdout that will fail the test via
 // the given TestControl if the plan cannot be read.
-func (wd *WorkingDir) RequireSavedPlanRaw(t TestControl) string {
+func (wd *WorkingDir) RequireSavedPlanStdout(t TestControl) string {
 	t.Helper()
 	ret, err := wd.SavedPlanStdout()
 	if err != nil {
