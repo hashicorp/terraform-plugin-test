@@ -3,6 +3,7 @@
 FEATURES:
 
  - Simplified API signatures to reflect no longer needing provider name [GH-32]
+ - Implement SavedPlanStdout which captures a non-json stdout run of `terraform show` of a planfile [GH-34]
 
 # 1.4.4 (July 10, 2020)
 
