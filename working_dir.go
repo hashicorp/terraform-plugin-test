@@ -370,12 +370,8 @@ func (wd *WorkingDir) Import(resource, id string) error {
 
 // RequireImport is a variant of Import that will fail the test via
 // the given TestControl if the import is non successful.
-func (wd *WorkingDir) RequireImport(t TestControl, resource, id string) {
-	t.Helper()
-	if err := wd.Import(resource, id); err != nil {
-		t := testingT{t}
-		t.Fatalf("failed to import: %s", err)
-	}
+func (wd *WorkingDir) RequireImport(resource, id string) error {
+	return wd.Import(resource, id)
 }
 
 // Refresh runs terraform refresh
