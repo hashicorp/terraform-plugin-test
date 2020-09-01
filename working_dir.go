@@ -196,6 +196,15 @@ func (wd *WorkingDir) RequireCreatePlan(t TestControl) {
 	}
 }
 
+// CreateDestroyPlan runs "terraform plan -destroy" to create a saved plan
+// file, which if successful will then be used for the next call to Apply.
+func (wd *WorkingDir) CreateDestroyPlan() error {
+	args := []string{"plan", "-destroy", "-refresh=false"}
+	args = append(args, wd.baseArgs...)
+	args = append(args, "-out=tfplan", wd.configDir)
+	return wd.runTerraform(nil, args...)
+}
+
 // Apply runs "terraform apply". If CreatePlan has previously completed
 // successfully and the saved plan has not been cleared in the meantime then
 // this will apply the saved plan. Otherwise, it will implicitly create a new
