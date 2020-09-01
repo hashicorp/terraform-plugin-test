@@ -1,3 +1,9 @@
+# 2.1.0 (Unreleased)
+
+FEATURES:
+
+  - Added the ability to create destroy plans. [GH-37]
+
 # 2.0.0 (August 10, 2020)
 
 FEATURES:
