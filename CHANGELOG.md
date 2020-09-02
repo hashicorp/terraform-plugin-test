@@ -1,8 +1,12 @@
-# 2.1.0 (Unreleased)
+# 2.1.0 (September 2, 2020)
 
 FEATURES:
 
   - Added the ability to create destroy plans. [GH-37]
+  
+ENHANCEMENTS:
+
+  - Normalised internal Terraform CLI commands using github.com/hashicorp/terraform-exec module. [GH-35]
 
 # 2.0.0 (August 10, 2020)
 
