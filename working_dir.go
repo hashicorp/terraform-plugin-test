@@ -3,6 +3,7 @@ package tftest
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -92,6 +93,20 @@ func (wd *WorkingDir) SetConfig(cfg string) error {
 	tf, err := tfexec.NewTerraform(wd.baseDir, wd.terraformExec)
 	if err != nil {
 		return err
+	}
+
+	var mismatch *tfexec.ErrVersionMismatch
+	err = tf.SetDisablePluginTLS(true)
+	if err != nil && !errors.As(err, &mismatch) {
+		return err
+	}
+	err = tf.SetSkipProviderVerify(true)
+	if err != nil && !errors.As(err, &mismatch) {
+		return err
+	}
+
+	if p := os.Getenv("TF_ACC_LOG_PATH"); p != "" {
+		tf.SetLogPath(p)
 	}
 
 	wd.configDir = configDir
