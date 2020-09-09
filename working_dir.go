@@ -37,7 +37,7 @@ type WorkingDir struct {
 
 	// reattachInfo stores the gRPC socket info required for Terraform's
 	// plugin reattach functionality
-	reattachInfo string
+	reattachInfo tfexec.ReattachInfo
 
 	env map[string]string
 }
@@ -62,12 +62,12 @@ func (wd *WorkingDir) Unsetenv(envVar string) {
 	delete(wd.env, envVar)
 }
 
-func (wd *WorkingDir) SetReattachInfo(reattachInfo string) {
+func (wd *WorkingDir) SetReattachInfo(reattachInfo tfexec.ReattachInfo) {
 	wd.reattachInfo = reattachInfo
 }
 
 func (wd *WorkingDir) UnsetReattachInfo() {
-	wd.reattachInfo = ""
+	wd.reattachInfo = nil
 }
 
 // GetHelper returns the Helper set on the WorkingDir.
