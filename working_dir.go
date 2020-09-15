@@ -330,7 +330,7 @@ func (wd *WorkingDir) SavedPlanStdout() (string, error) {
 
 	wd.tf.SetStdout(&ret)
 	defer wd.tf.SetStdout(ioutil.Discard)
-	_, err := wd.tf.ShowPlanFile(context.Background(), wd.planFilename(), tfexec.Reattach(wd.reattachInfo))
+	_, err := wd.tf.ShowPlanFileRaw(context.Background(), wd.planFilename(), tfexec.Reattach(wd.reattachInfo))
 	if err != nil {
 		return "", err
 	}
