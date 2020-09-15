@@ -1,3 +1,9 @@
+# 2.1.2 (September 15, 2020)
+
+BUG FIXES:
+
+ - Fix plan output to be in a human-friendly format ([#40](https://github.com/hashicorp/terraform-plugin-test/pull/40))
+
 # 2.1.1 (September 9, 2020)
 
 BUG FIXES:
