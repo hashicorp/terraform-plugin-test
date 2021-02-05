@@ -102,7 +102,14 @@ func (wd *WorkingDir) SetConfig(cfg string) error {
 		return err
 	}
 
-	tf, err := tfexec.NewTerraform(wd.baseDir, wd.terraformExec)
+	// symlink the provider source files into the config directory
+	// e.g. testdata
+	err = symlinkDirectoriesOnly(wd.h.sourceDir, configDir)
+	if err != nil {
+		return err
+	}
+
+	tf, err := tfexec.NewTerraform(configDir, wd.terraformExec)
 	if err != nil {
 		return err
 	}
@@ -147,7 +154,7 @@ func (wd *WorkingDir) RequireSetConfig(t TestControl, cfg string) {
 // Any remote objects tracked by the state are not destroyed first, so this
 // will leave them dangling in the remote system.
 func (wd *WorkingDir) ClearState() error {
-	err := os.Remove(filepath.Join(wd.baseDir, "terraform.tfstate"))
+	err := os.Remove(filepath.Join(wd.configDir, "terraform.tfstate"))
 	if os.IsNotExist(err) {
 		return nil
 	}
@@ -190,7 +197,7 @@ func (wd *WorkingDir) Init() error {
 		return fmt.Errorf("must call SetConfig before Init")
 	}
 
-	return wd.tf.Init(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Dir(wd.configDir))
+	return wd.tf.Init(context.Background(), tfexec.Reattach(wd.reattachInfo))
 }
 
 // RequireInit is a variant of Init that will fail the test via the given
@@ -204,13 +211,13 @@ func (wd *WorkingDir) RequireInit(t TestControl) {
 }
 
 func (wd *WorkingDir) planFilename() string {
-	return filepath.Join(wd.baseDir, "tfplan")
+	return filepath.Join(wd.configDir, "tfplan")
 }
 
 // CreatePlan runs "terraform plan" to create a saved plan file, which if successful
 // will then be used for the next call to Apply.
 func (wd *WorkingDir) CreatePlan() error {
-	_, err := wd.tf.Plan(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false), tfexec.Out("tfplan"), tfexec.Dir(wd.configDir))
+	_, err := wd.tf.Plan(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false), tfexec.Out("tfplan"))
 	return err
 }
 
@@ -227,7 +234,7 @@ func (wd *WorkingDir) RequireCreatePlan(t TestControl) {
 // CreateDestroyPlan runs "terraform plan -destroy" to create a saved plan
 // file, which if successful will then be used for the next call to Apply.
 func (wd *WorkingDir) CreateDestroyPlan() error {
-	_, err := wd.tf.Plan(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false), tfexec.Out("tfplan"), tfexec.Destroy(true), tfexec.Dir(wd.configDir))
+	_, err := wd.tf.Plan(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false), tfexec.Out("tfplan"), tfexec.Destroy(true))
 	return err
 }
 
@@ -239,17 +246,8 @@ func (wd *WorkingDir) Apply() error {
 	args := []tfexec.ApplyOption{tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false)}
 	if wd.HasSavedPlan() {
 		args = append(args, tfexec.DirOrPlan("tfplan"))
-	} else {
-		// we need to use a relative config dir here or we get an
-		// error about Terraform not having any configuration. See
-		// https://github.com/hashicorp/terraform-plugin-sdk/issues/495
-		// for more info.
-		configDir, err := wd.relativeConfigDir()
-		if err != nil {
-			return err
-		}
-		args = append(args, tfexec.DirOrPlan(configDir))
 	}
+
 	return wd.tf.Apply(context.Background(), args...)
 }
 
@@ -269,7 +267,7 @@ func (wd *WorkingDir) RequireApply(t TestControl) {
 // If destroy fails then remote objects might still exist, and continue to
 // exist after a particular test is concluded.
 func (wd *WorkingDir) Destroy() error {
-	return wd.tf.Destroy(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false), tfexec.Dir(wd.configDir))
+	return wd.tf.Destroy(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.Refresh(false))
 }
 
 // RequireDestroy is a variant of Destroy that will fail the test via
@@ -386,7 +384,7 @@ func (wd *WorkingDir) RequireImport(t TestControl, resource, id string) {
 
 // Refresh runs terraform refresh
 func (wd *WorkingDir) Refresh() error {
-	return wd.tf.Refresh(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.State(filepath.Join(wd.baseDir, "terraform.tfstate")), tfexec.Dir(wd.configDir))
+	return wd.tf.Refresh(context.Background(), tfexec.Reattach(wd.reattachInfo), tfexec.State(filepath.Join(wd.configDir, "terraform.tfstate")))
 }
 
 // RequireRefresh is a variant of Refresh that will fail the test via
