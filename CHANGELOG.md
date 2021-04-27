@@ -1,4 +1,4 @@
-# 2.2.1 (Unreleased)
+# 2.2.1 (April 27, 2021)
 
 SECURITY:
 
